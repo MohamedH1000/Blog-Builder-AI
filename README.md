@@ -72,13 +72,26 @@ npm run start
 | POST | `/api/articles/generate` | Generate new article |
 
 ## Project Structure
-
 ```
-├── client/          # React frontend
-├── server/          # Express backend
-├── shared/          # Shared types/schemas
-├── infra/           # AWS infrastructure configs
-└── docs/            # Documentation
+├── client/                 # Frontend React application
+│   ├── src/
+│   │   ├── components/     # Reusable UI components
+│   │   ├── pages/          # Page components (Home, Article, NotFound)
+│   │   ├── hooks/          # Custom React hooks
+│   │   └── lib/            # Utilities and API client
+├── server/                 # Backend Express application
+│   ├── services/           # Business logic (AI client, article scheduler)
+│   ├── routes.ts           # API route handlers
+│   ├── storage.ts          # Database storage layer
+│   └── db.ts               # Database connection
+├── shared/                 # Shared types and schemas
+│   └── schema.ts           # Drizzle schema definitions
+├── infra/                  # Infrastructure configuration
+│   ├── buildspec.yml       # AWS CodeBuild configuration
+│   └── scripts/            # EC2 init and deploy scripts
+├── Dockerfile              # Multi-stage Docker build
+├── docker-compose.yml      # Production Docker Compose (requires .env)
+├── docker-compose.dev.yml  # Development database only
 ```
 
 ## Deployment to AWS
