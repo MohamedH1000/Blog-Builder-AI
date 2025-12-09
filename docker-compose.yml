@@ -1,29 +1,14 @@
 version: '3.8'
 
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "5000:5000"
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}@db:5432/aiblog
-      - SESSION_SECRET=${SESSION_SECRET:?SESSION_SECRET required}
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: unless-stopped
-    networks:
-      - aiblog-network
-
+  # PostgreSQL Database
   db:
-    image: postgres:15-alpine
+    image: postgres:16-alpine
+    container_name: blog-builder-db
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
-      - POSTGRES_DB=aiblog
+      POSTGRES_DB: blogdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-your_secure_password_here}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -35,11 +20,54 @@ services:
       retries: 5
     restart: unless-stopped
     networks:
-      - aiblog-network
+      - blog-network
+
+  # Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: blog-builder-app
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+    environment:
+      # Node environment
+      - NODE_ENV=production
+      - PORT=5000
+      
+      # Database connection
+      # Format: postgresql://user:password@host:port/database
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-your_secure_password_here}@db:5432/blogdb
+      
+      # Session secret (MUST be set in .env file or here)
+      - SESSION_SECRET=${SESSION_SECRET}
+      
+      # Add any other environment variables your app needs
+      # - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # - GOOGLE_AI_API_KEY=${GOOGLE_AI_API_KEY}
+    
+    # Optional: mount .env file if you prefer (but environment vars above are recommended)
+    # env_file:
+    #   - .env
+    
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - blog-network
+
+networks:
+  blog-network:
+    driver: bridge
 
 volumes:
   postgres_data:
-
-networks:
-  aiblog-network:
-    driver: bridge
+    driver: local
