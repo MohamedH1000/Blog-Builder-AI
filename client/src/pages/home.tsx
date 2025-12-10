@@ -30,7 +30,7 @@ export default function Home() {
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Discover thought-provoking articles on technology, science,
-              culture, and more. New content generated automatically every day.
+              culture, and more. New content generated automatically everyday.
             </p>
           </header>
 
